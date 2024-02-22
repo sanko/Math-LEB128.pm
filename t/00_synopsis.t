@@ -25,5 +25,4 @@ subtest offset => sub {
     is leb128_encode( 624485, $buffer, 3 ), 3,                                  'leb128_encode( 624485, $buffer, 3 )';
     is $buffer,                             "\x00\x00\x00\xE5\x8E\x26\x00\x00", '$buffer is correct';
 };
-
 done_testing;

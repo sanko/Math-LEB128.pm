@@ -1,26 +1,34 @@
 package Math::LEB128 0.01 {
-    use v5.36;
+    use strict;
+    use warnings;
     use Exporter 'import';
     our @EXPORT_OK   = qw[leb128_encode leb128_decode];
     our %EXPORT_TAGS = ( all => \@EXPORT_OK );
 
-    sub leb128_encode ($value) {
-        my $encoded = "";
+    sub leb128_encode ($;$$) {
+        my ( $value, $buffer, $offset ) = @_;
+        my $b = $buffer // '';
+        $offset //= 0;
+        my $bytes = 0;
         do {
             my $byte = $value & 0x7F;
             $byte |= ( $value >= 0x80 ) ? 0x80 : 0;
-            $encoded .= chr($byte);
+            substr $b, $offset++, 1, chr($byte);
+            $bytes++;
             $value >>= 7;
         } while ($value);
-        return $encoded;
+        return $b unless defined $buffer;
+        $_[1] = $b;
+        defined $buffer ? $bytes : $b;
     }
 
-    sub leb128_decode ($encoded) {
-        my $value = 0;
-        my $shift = 0;
-        while ($encoded) {
-            my $byte = ord($encoded);
-            $encoded = substr( $encoded, 1 );
+    sub leb128_decode ($) {
+        my ($buffer) = @_;
+        my $value    = 0;
+        my $shift    = 0;
+        while ($buffer) {
+            my $byte = ord($buffer);
+            $buffer = substr( $buffer, 1 );
             $value |= ( $byte & 0x7F ) << $shift;
             $shift += 7;
         }
